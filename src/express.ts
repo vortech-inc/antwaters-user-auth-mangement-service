@@ -1,7 +1,7 @@
 import { Channel } from "amqplib"
 import express, { Application, Response, Request, NextFunction } from "express"
-import { createChannel } from "./utils/index.js"
-import userRouter from "./routes/user_route.js"
+import { createChannel } from "./utils/index"
+import userRouter from "./routes/user_route"
 
 
 

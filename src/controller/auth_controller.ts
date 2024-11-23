@@ -11,7 +11,7 @@ import { createChannel, publismMessage } from "../utils/index"
 
 const {MEDICAL_SERVICE_BINDING_KEY} = config
 
-export const createUser = async(req: Request, res: Response, next: NextFunction) => {
+export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
     const {firstName, lastName, email, phoneNumber, userName, password} = req.body
     
 
