@@ -5,7 +5,6 @@ import { ErrorHandler } from "./middlewares/ErrorHandler"
 import { dbConnection } from "./database/dbConnection"
 import dotenv from "dotenv"
 import userRouter from "./routes/user_route"
-import authenticateUser from "./middlewares/authentication"
 import config from "../config/config"
 import expressApp from "./express"
 const app: Application = express()

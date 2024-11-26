@@ -22,12 +22,11 @@ const profileSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-     createdAt: {
-        type: Date,
-        required: true
-    },
-      updatedAt: {
-        type: Date,
-        required: true
+},
+    {
+        timestamps: true, 
     }
-})
+)
+
+
+export const UserProfile = mongoose.model("UserProfile", profileSchema)

@@ -1,10 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const userSchema = new mongoose.Schema({
 
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: String,
@@ -13,13 +14,16 @@ const userSchema = new mongoose.Schema({
     ,
     userName: {
         type: String,
-        required: true
+        required: true,
+        unique: true
+
     },
     role: {
         type: String,
         required: true,
         enum: ["patient", "admin", "provider"]
     },
+
     refreshToken: {
         type: String,
         required: true
@@ -27,6 +31,13 @@ const userSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         required: true
+    },
+    profile: {
+        type: Schema.Types.ObjectId, 
+        ref: "UserProfile", 
+        required: true
+
+
     }
 })
 

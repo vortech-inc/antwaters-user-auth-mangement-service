@@ -8,38 +8,63 @@ import bcrypt from "bcryptjs";
 import { ApiError } from "../utils/ApiError"
 import { STATUS_CODES } from "http"
 import { createChannel, publismMessage } from "../utils/index"
+import AuthService from "../services/auth"
+import { generateRefreshToken, generateToken } from "../services"
+import { UserIdProps } from "../types/types"
 
 const {MEDICAL_SERVICE_BINDING_KEY} = config
 
+const service = new AuthService()
+
 export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
-    const {firstName, lastName, email, phoneNumber, userName, password} = req.body
+  const {firstName, lastName, email, phoneNumber, userName, password} = req.body
+  
+
+  try {
+      if(!firstName || !lastName || phoneNumber || !email || !password){
+          throw new ApiError(StatusCodes.BAD_REQUEST, "incomplete form field")
+      }
+
+   
+      const newUser = service.userRegister({firstName, lastName, email, phoneNumber, userName, password})
+      res.status(StatusCodes.OK).json({
+        success: true,
+        message: "Successfully created",
+        newUser
+    })
+
+
+   
+      
+  } catch (error) {
+      next(error)
+  }
+}
+export const signUp = async(req: Request, res: Response, next: NextFunction) => {
+  const {email, userName, password} = req.body
+  
+
+  try {
+      if(!email || !password){
+          throw new ApiError(StatusCodes.BAD_REQUEST, "incomplete form")
+      }
+
     
 
-    try {
-        if(!firstName || !lastName || !email || !password){
-            throw new ApiError(StatusCodes.BAD_REQUEST, "incomplete form")
-        }
+      const hashedPassword = bcrypt.hashSync(password)
 
-        const existingUser = await User.findOne({email})
-        if(existingUser){
-            throw new ApiError(StatusCodes.CONFLICT, "user already exist")
-        }
 
-        const hashedPassword = bcrypt.hashSync(password)
+      const newUser =  await User.create({ email, userName, password: hashedPassword })
 
-        console.log(hashedPassword)
-
-        const newUser =  await User.create({firstName, lastName, email, phoneNumber, userName, password: hashedPassword })
-
-        res.status(StatusCodes.OK).json({
-            success: true,
-            message: "Successfully created",
-            newUser
-        })
-        
-    } catch (error) {
-        next(error)
-    }
+      res.status(StatusCodes.OK).json({
+          success: true,
+          message: "Successfully created",
+          newUser
+      })
+      
+  } catch (error) {
+      next(error)
+  }
 }
 
 export const login = async (
@@ -51,38 +76,19 @@ export const login = async (
 
   try {
     // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      return next(new ApiError(StatusCodes.NOT_FOUND, "User not found"));
-    }
+    // const user = await User.findOne({ email });
+    // if (!user) {
+    //   return next(new ApiError(StatusCodes.NOT_FOUND, "User not found"));
+    // }
 
-    // Verify password
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      return next(new ApiError(StatusCodes.UNAUTHORIZED, "Invalid password"));
-    }
-
+    const data = await service.userSignIn({email, password})
+    
+  
     // Ensure secret key is available
-    if (!config.secretKey) {
-      return next(
-        new ApiError(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "JWT secret key is missing"
-        )
-      );
-    }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      config.secretKey,
-      { expiresIn: "1h" }
-    );
-
+ 
     // Respond with token and user data
     res.status(StatusCodes.OK).json({
-      token,
-      data: user,
+      data,
       message: "Login Successful",
     });
   } catch (error) {
@@ -158,4 +164,42 @@ export const getUsers = async(req: Request, res: Response, next: NextFunction) =
     } catch (error) {
         next(error)
     }
+}
+
+
+export const refreshToken = async (req: any, res: Response, next: NextFunction) => {
+  if(!req.user){
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "User is not authenticated");
+  }
+  const {id, email}   = req.user 
+  const token = req.headers["refreshToken"];  // Extract token from header
+
+  if(!id || !email) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "User authentication failed")
+
+  }
+  try {
+
+    const data = await service.userRefreshToken({id, email})
+    res.status(StatusCodes.OK).json({
+      data,
+      success: true,
+      message: "generate refresh token"
+    })
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to generate token")
+  }
+
+}
+
+export const updateUserProfile = async(req: any, res: Response, next: NextFunction) => {
+  const {id, email}   = req.user as UserIdProps
+  const {firstName, lastName, phoneNumber, address} = req.body
+  try {
+    
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to update profiie")
+
+  }
+
 }

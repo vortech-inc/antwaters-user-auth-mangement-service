@@ -1,12 +1,17 @@
 import { StatusCodes } from "http-status-codes";
 import { ApiError } from "../utils/ApiError";
 import { User } from "../models/user-model";
+import { UserPayload } from "../types/types";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
+import config from "../../config/config";
 
-export const findUser = ({id, email}: {id?: string, email?: string}) => {
+
+const {secretKey, refreshSecretKey} = config
+export const findUser = async({id, email}: {id?: string, email?: string}): Promise<UserPayload> => {
 
     try {
 
-        const user = User.findById(id) ?? User.findOne({email})
+        const user = await User.findById(id) ?? await User.findOne({email})
         if(!user){       
          throw new ApiError(StatusCodes.NOT_FOUND, "User does not exist");
  
@@ -21,11 +26,11 @@ export const findUser = ({id, email}: {id?: string, email?: string}) => {
 
 }
 
-export const findUsers = ({id, email}: {id?: string, email?: string}) => {
+export const findUsers = async() => {
 
     try {
 
-        const users = User.find()
+        const users = await User.find()
         if(!users){       
          throw new ApiError(StatusCodes.NOT_FOUND, "User does not exist");
  
@@ -38,4 +43,35 @@ export const findUsers = ({id, email}: {id?: string, email?: string}) => {
         throw new ApiError(StatusCodes.NOT_FOUND, "user does not exist")
     }
 
+}
+
+
+export const generateToken = async({id, email}: {id: string, email: string}) => {
+
+    if(!secretKey){
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "JWT secret key missing")
+    }
+    const token = jwt.sign(
+        {id, email},
+        secretKey,
+        {expiresIn: "3h"}
+    )
+
+
+    return token
+}
+
+export const generateRefreshToken = async({id, email}: {id: string, email: string}) => {
+
+    if(!refreshSecretKey){
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "JWT secret key missing")
+    }
+    const refreshToken = jwt.sign(
+        {id, email},
+        refreshSecretKey,
+        {expiresIn: "7d"}
+    )
+
+
+    return refreshToken
 }
