@@ -11,24 +11,7 @@ const app: Application = express()
 
 dotenv.config()
 
-
-
-
-
-// app.get("/", (req: Request, res: Response) => {
-
-//     res.status(200).json({
-//         message: "hello world"
-//     })
-// })
-
-
 expressApp(app)
-
-app.use("/", userRouter)
-
-// app.use(authenticateUser)
-
 
 app.use((req: Request) => {
     throw new NotFoundError(req.path)
