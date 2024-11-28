@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
 const providerPatientAssociations = new mongoose.Schema({
-    patientId: {
+    patient_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
 
     },
-    providerId: {
+    provider_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
