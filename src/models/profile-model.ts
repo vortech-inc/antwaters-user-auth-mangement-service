@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const profileSchema = new mongoose.Schema({
-    user_id: {
+    user: {
         type: mongoose.Schema.Types.ObjectId, 
         ref: "User",
         required:  true
@@ -20,13 +20,33 @@ const profileSchema = new mongoose.Schema({
     },
     address: {
         type: String,
+        // required: true
+    }, designation: {
+        type: String,
         required: true
+    },
+    specialization: {
+        type: String,
+        // required: true
+    },
+    experience: {
+        type: Number,
+        // required: true
     },
 },
     {
-        timestamps: true, 
+        timestamps: true,
+        toJSON: {
+            virtuals: true,
+            transform: (doc, ret) => {
+              ret.id = ret._id.toString();
+              delete ret._id;
+              delete ret.__v;
+              return ret;
+            },
+          } 
     }
 )
 
 
-export const UserProfile = mongoose.model("UserProfile", profileSchema)
+export const Profile = mongoose.model("Profile", profileSchema)

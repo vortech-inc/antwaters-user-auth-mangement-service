@@ -17,20 +17,23 @@ const {MEDICAL_SERVICE_BINDING_KEY} = config
 const service = new AuthService()
 
 export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
-  const {firstName, lastName, email, phoneNumber, userName, password} = req.body
-  
+  const {profile, email, password, role, userName} = req.body
+
+  const {lastName, phoneNumber, firstName, specialization, experience, designation } = profile
+  // console.log(lastName)
 
   try {
-      if(!firstName || !lastName || phoneNumber || !email || !password){
+      if(!email || !password){
           throw new ApiError(StatusCodes.BAD_REQUEST, "incomplete form field")
       }
-
    
-      const newUser = service.userRegister({firstName, lastName, email, phoneNumber, userName, password})
+      const newUser = await service.userRegister({profile, email, userName, password, role})
+            console.log("existing user")
+
       res.status(StatusCodes.OK).json({
         success: true,
         message: "Successfully created",
-        newUser
+        data: newUser
     })
 
 
@@ -40,32 +43,32 @@ export const registerUser = async(req: Request, res: Response, next: NextFunctio
       next(error)
   }
 }
-export const signUp = async(req: Request, res: Response, next: NextFunction) => {
-  const {email, userName, password} = req.body
+// export const signUp = async(req: Request, res: Response, next: NextFunction) => {
+//   const {email, userName, password} = req.body
   
 
-  try {
-      if(!email || !password){
-          throw new ApiError(StatusCodes.BAD_REQUEST, "incomplete form")
-      }
+//   try {
+//       if(!email || !password){
+//           throw new ApiError(StatusCodes.BAD_REQUEST, "incomplete form")
+//       }
 
     
 
-      const hashedPassword = bcrypt.hashSync(password)
+//       const hashedPassword = bcrypt.hashSync(password)
 
 
-      const newUser =  await User.create({ email, userName, password: hashedPassword })
+//       const newUser =  await User.create({ email, userName, password: hashedPassword })
 
-      res.status(StatusCodes.OK).json({
-          success: true,
-          message: "Successfully created",
-          newUser
-      })
+//       res.status(StatusCodes.OK).json({
+//           success: true,
+//           message: "Successfully created",
+//           newUser
+//       })
       
-  } catch (error) {
-      next(error)
-  }
-}
+//   } catch (error) {
+//       next(error)
+//   }
+// }
 
 export const login = async (
   req: Request,
@@ -128,32 +131,13 @@ export const login = async (
     }
 }
 
-  export const getProfile = async(req: any, res: Response, next: NextFunction) => {
-    const channel = await createChannel()
 
-
-    const user = req.user
-
-    publismMessage(channel, MEDICAL_SERVICE_BINDING_KEY, JSON.stringify(user) )
-
-    try {      
-        const userProfile = await User.findById(user.id)
-        res.status(StatusCodes.OK).json({
-            success: true,
-            message: "Successfully created",
-            data: userProfile
-        })
-        
-    } catch (error) {
-        next(error)
-    }
-}
 export const getUsers = async(req: Request, res: Response, next: NextFunction) => {
 
     
     try {
       
-        const users = await User.find()
+        const users = await User.find().select('-password -email')
 
         res.status(StatusCodes.OK).json({
             success: true,

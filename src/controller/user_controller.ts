@@ -9,25 +9,25 @@ import { ApiError } from "../utils/ApiError"
 import { STATUS_CODES } from "http"
 import { createChannel, publismMessage } from "../utils/index"
 import AuthService from "../services/auth"
-import { generateRefreshToken, generateToken } from "../services"
 import UserManagementService from "../services/user-management"
+import { findUser } from "../services"
 
 const {MEDICAL_SERVICE_BINDING_KEY} = config
 
 const service = new UserManagementService()
 
 
-export const updateUserProfile = async(req: Request, res: Response, next: NextFunction) => {
+export const updateUserProfile = async(req: any, res: Response, next: NextFunction) => {
 
-const user = req.user
+  const {lastName, phoneNumber, firstName,address, specialization, experience, designation } = req.body
+  const {user} = req.user
 
   if(!user){
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to update profiie")
 
   }
-  const {firstName, lastName, phoneNumber, address} = req.body
   try {
-   const data =  service.updateUserProfile( {firstName, lastName, phoneNumber, address, user_id: user.id ?? "none"} )
+   const data =  service.updateUserProfile( {firstName, lastName, phoneNumber, address, specialization, experience, designation, user_id: user.id ?? "none"} )
 
    if(!data) {
         // Throw an error if no profile was found
@@ -54,10 +54,56 @@ const user = req.user
 
 }
 
-const   CreateUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+const getMeProfile = async(req: any, res: Response, next: NextFunction) => {
+  const channel = await createChannel()
+
+
+  const {id} = req.user
+
+  // publismMessage(channel, MEDICAL_SERVICE_BINDING_KEY, JSON.stringify(user) )
+
+  try {      
+      const userProfile = await service.getUserProfile({user_id: id})
+      res.status(StatusCodes.OK).json({
+          success: true,
+          message: "fetched user profile",
+          data: userProfile
+      })
+      
+  } catch (error) {
+      next(error)
+  }
+}
+
+export const getAllUserProfiles = async(req: any, res: Response, next: NextFunction) => {
+  // const channel = await createChannel()
+
+
+  const {id} = req.user
+
+  console.log("firstsfsfsffdsgdgd")
+
+  // publismMessage(channel, MEDICAL_SERVICE_BINDING_KEY, JSON.stringify(user) )
+
+  try {      
+      const userProfiles = await service.getUserProfiles()
+      res.status(StatusCodes.OK).json({
+          success: true,
+          message: "fetched user profile",
+          data: userProfiles
+      })
+      
+  } catch (error) {
+      next(error)
+  }
+}
+const   createUserProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
         
     } catch (error) {
         
     }
 }
+
+
+export {getMeProfile, createUserProfile}

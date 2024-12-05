@@ -18,7 +18,7 @@ export const authenticateUser = (req: any, res: Response, next: NextFunction) =>
     }
 
     jwt.verify(token, config.secretKey, (err: any, decode: any) => {
-        console.log(token)
+        // console.log(token)
         if (err) {
             return next(new ApiError(StatusCodes.FORBIDDEN, "Invalid or expired token"));
         }

@@ -4,6 +4,9 @@ import { ApiError } from "../utils/ApiError"
 import { StatusCodes } from "http-status-codes"
 import { findUser, generateRefreshToken, generateToken } from "."
 import bcrypt from "bcryptjs";
+import { IUserPayload } from "../types/types"
+import { Profile } from "../models/profile-model"
+import mongoose from "mongoose"
 
 class AuthService {
     constructor(){
@@ -46,45 +49,79 @@ class AuthService {
         }
     }
 
-    userRegister = async({email, userName, password, firstName, lastName, phoneNumber}: {phoneNumber: string, lastName: string, firstName: string, email: string, userName: string, password: string}) => {
+    userRegister = async({email, userName, password, role, profile }: IUserPayload ) => {
+        const {phoneNumber, firstName, lastName, address} = profile
+            const session = await mongoose.startSession()
+            session.startTransaction()
+
         try {
-            const existingUser =  findUser({email})
-            if(!existingUser){
+
+            const existingUser =  await User.findOne({email})
+
+            if(existingUser){
                 throw new ApiError(StatusCodes.CONFLICT, "user already exist")
             }
 
+            // console.log(existingUser)
+
             const hashedPassword = bcrypt.hashSync(password)
-            const newUser =  await User.create({ email, userName, firstName, lastName, phoneNumber, password: hashedPassword })
-            
+            // console.log("existing user for one", existingUser)
+
+            const newUser =  await User.create([{ email, userName, role, phoneNumber, password: hashedPassword }], {session})
+            console.log({phoneNumber, firstName, lastName, address})
+
+            const userProfile = await Profile.create([{user: newUser[0]._id, phoneNumber, firstName, lastName, address }], {session})
+            // console.log("existing user", existingUser)
+
+            await session.commitTransaction()
+            session.endSession()
+
             return newUser
         } catch (error) {
-            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "failed to register user")
+
+            await session.abortTransaction()
+            await session.endSession()
+
+            if(error  instanceof ApiError){
+                throw error
+
+            }
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR,
+                 error instanceof Error ? error.message : "An unexpected error occurred")
         }
     }
 
-
-    userSignIn = async({email, password}: {email: string, password: string}) => {
+    userSignIn = async ({ email, password }: { email: string; password: string }) => {
         try {
-            const user = await findUser({email})
-            const token = await generateToken({id: user?.id ?? "no key", email: user.email})
-            const refreshToken = await generateRefreshToken({id: user?.id ?? "no key", email})
-
-            if(!user){
-                throw new ApiError(StatusCodes.NOT_FOUND, "user with email does not exist")
-            }
-
-            const isPasswordCorrect = bcrypt.compareSync(password, user.password)
-            if(!isPasswordCorrect){
-                throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid password")
-            }
-            return {user, token, refreshToken}
-        } catch (error) {
-            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "failed to register user")
-
-        }
-    }
-
+            // Fetch user by email
+            const user = await findUser({ email });
     
+            // Check if user exists
+            if (!user) {
+                throw new ApiError(StatusCodes.NOT_FOUND, "User with this email does not exist");
+            }
+    
+            // Check if password is correct
+            const isPasswordCorrect = bcrypt.compareSync(password, user.password as string);
+            if (!isPasswordCorrect) {
+                throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid password");
+            }
+    
+            // Generate tokens
+            const token = await generateToken({ id: user.id, email: user.email as string });
+            const refreshToken = await generateRefreshToken({ id: user.id, email: user.email as string});
+    
+            return { user, token, refreshToken };
+        } catch (error: any) {
+            console.error("Error in userSignIn:", error.message);
+            // Re-throw original error if it's an ApiError
+            if (error instanceof ApiError) {
+                throw error;
+            }
+            // Throw generic error for unexpected issues
+            throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to sign in user");
+        }
+    };
 
 
     userRefreshToken = async({id, email}: { id: string , email: string}) => {

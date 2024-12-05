@@ -1,17 +1,16 @@
 import { StatusCodes } from "http-status-codes";
 import { ApiError } from "../utils/ApiError";
 import { User } from "../models/user-model";
-import { UserPayload } from "../types/types";
 import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import config from "../../config/config";
 
 
 const {secretKey, refreshSecretKey} = config
-export const findUser = async({id, email}: {id?: string, email?: string}): Promise<UserPayload> => {
+export const findUser = async({id, email}: {id?: string, email?: string}) => {
 
     try {
 
-        const user = await User.findById(id) ?? await User.findOne({email})
+        const user = await User.findOne({ $or: [{_id: id}, {email}]})
         if(!user){       
          throw new ApiError(StatusCodes.NOT_FOUND, "User does not exist");
  

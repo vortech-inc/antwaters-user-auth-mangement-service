@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        // unique: true
     },
     password: {
         type: String,
@@ -14,31 +14,34 @@ const userSchema = new mongoose.Schema({
     ,
     userName: {
         type: String,
-        required: true,
-        unique: true
+        // required: true,
+        // unique: true
 
     },
     role: {
         type: String,
         required: true,
         enum: ["patient", "admin", "provider"]
-    },
-
-    refreshToken: {
-        type: String,
-        required: true
-    },
-    createdAt: {
-        type: Date,
-        required: true
-    },
-    profile: {
-        type: Schema.Types.ObjectId, 
-        ref: "UserProfile", 
-        required: true
-
-
     }
+}, {
+    timestamps: true, 
+    toJSON: {
+        virtuals: true,
+        transform: (doc, ret) => {
+          ret.id = ret._id.toString();
+          delete ret._id;
+          delete ret.__v;
+          return ret;
+        },
+      }
 })
+
+
+// userSchema.virtual("profile", {
+//     ref: "UserProfile", // The related model
+//     localField: "_id",  // The User's ID field
+//     foreignField: "user", // The User field in UserProfile
+//     justOne: true, // Because it's a one-to-one relationship
+// });
 
 export const User = mongoose.model("User", userSchema)

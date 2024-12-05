@@ -1,13 +1,34 @@
 import { Document } from "mongoose";
 
-export interface UserPayload {
-    _id: {}
-    id?: string;
-    email: string;
-    role: string;
-    password: string,
-    createdAt: NativeDate,
-    refreshToken: string
+// export interface UserPayload {
+//     _id: {}
+//     id?: string;
+//     email: string;
+//     role: string;
+//     password: string,
+//     createdAt: NativeDate,
+//     refreshToken: string
+// }
+
+
+export interface IProfile{
+  
+        phoneNumber: string, 
+        lastName: string, 
+        firstName: string, 
+        address?: string,
+        designation?: string,
+        specialization?: string, 
+        experience?: number
+
+
+}
+export interface IUserPayload  {
+    profile: IProfile,      
+    email: string, 
+    userName?: string, 
+    password: string, 
+    role: string
 }
 
 export interface UserIdProps {
