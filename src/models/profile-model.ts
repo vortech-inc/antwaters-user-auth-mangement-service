@@ -17,11 +17,12 @@ const profileSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true
-    },
+    },  
     address: {
         type: String,
         // required: true
-    }, designation: {
+    }, 
+    designation: {
         type: String,
         required: true
     },

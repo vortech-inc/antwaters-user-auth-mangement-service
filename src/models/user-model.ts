@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema({
         // required: true,
         // unique: true
 
+    }, 
+    availability: {
+        status:{
+            type: Boolean,
+        } 
+        // required: true,
+        // unique: true
+
     },
     role: {
         type: String,

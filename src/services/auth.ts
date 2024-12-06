@@ -65,12 +65,23 @@ class AuthService {
             // console.log(existingUser)
 
             const hashedPassword = bcrypt.hashSync(password)
-            // console.log("existing user for one", existingUser)
 
-            const newUser =  await User.create([{ email, userName, role, phoneNumber, password: hashedPassword }], {session})
-            console.log({phoneNumber, firstName, lastName, address})
+            const newUser =  await User.create([{ 
+                email, userName, 
+                role, 
+                phoneNumber, 
+                availability: 
+                role=="provider" ?   {status: true} : null, 
+                password: hashedPassword }], 
+                {session})
 
+                
             const userProfile = await Profile.create([{user: newUser[0]._id, phoneNumber, firstName, lastName, address }], {session})
+
+            if(role == "provider"){
+                 await Profile.create([{user: newUser[0]._id, phoneNumber, firstName, lastName, address }], {session})
+
+            }
             // console.log("existing user", existingUser)
 
             await session.commitTransaction()

@@ -29,6 +29,9 @@ export interface IUserPayload  {
     userName?: string, 
     password: string, 
     role: string
+    availability?:{
+        status: boolean
+    } 
 }
 
 export interface UserIdProps {

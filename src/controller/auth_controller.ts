@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from "express"
 import { User } from "../models/user-model"
 import { StatusCodes } from "http-status-codes"
-import jwt from "jsonwebtoken"
-// import { secretKey } from "../utils/store"
+
 import config from "../../config/config"
-import bcrypt from "bcryptjs";
+
 import { ApiError } from "../utils/ApiError"
 import { STATUS_CODES } from "http"
 import { createChannel, publismMessage } from "../utils/index"
@@ -19,8 +18,9 @@ const service = new AuthService()
 export const registerUser = async(req: Request, res: Response, next: NextFunction) => {
   const {profile, email, password, role, userName} = req.body
 
-  const {lastName, phoneNumber, firstName, specialization, experience, designation } = profile
-  // console.log(lastName)
+  // const {lastName, phoneNumber, firstName, specialization, experience, designation } = profile
+  // // console.log(lastName)
+
 
   try {
       if(!email || !password){
@@ -36,39 +36,12 @@ export const registerUser = async(req: Request, res: Response, next: NextFunctio
         data: newUser
     })
 
-
    
       
   } catch (error) {
-      next(error)
+    next(error)
   }
 }
-// export const signUp = async(req: Request, res: Response, next: NextFunction) => {
-//   const {email, userName, password} = req.body
-  
-
-//   try {
-//       if(!email || !password){
-//           throw new ApiError(StatusCodes.BAD_REQUEST, "incomplete form")
-//       }
-
-    
-
-//       const hashedPassword = bcrypt.hashSync(password)
-
-
-//       const newUser =  await User.create({ email, userName, password: hashedPassword })
-
-//       res.status(StatusCodes.OK).json({
-//           success: true,
-//           message: "Successfully created",
-//           newUser
-//       })
-      
-//   } catch (error) {
-//       next(error)
-//   }
-// }
 
 export const login = async (
   req: Request,
@@ -78,18 +51,9 @@ export const login = async (
   const { email, password } = req.body;
 
   try {
-    // Check if user exists
-    // const user = await User.findOne({ email });
-    // if (!user) {
-    //   return next(new ApiError(StatusCodes.NOT_FOUND, "User not found"));
-    // }
-
+   
     const data = await service.userSignIn({email, password})
     
-  
-    // Ensure secret key is available
- 
-    // Respond with token and user data
     res.status(StatusCodes.OK).json({
       data,
       message: "Login Successful",
